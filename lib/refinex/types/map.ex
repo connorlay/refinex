@@ -3,7 +3,9 @@ defmodule Refinex.Map do
 
   type([:key, :value])
   refine(:is_map)
-  # refine(:refine_keys_and_values)
+  refine(:refine_keys_and_values)
 
-  # def refine_keys_and_values(map, [key, value])
+  def refine_keys_and_values(map, [key, value]) do
+    true
+  end
 end

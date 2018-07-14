@@ -44,6 +44,8 @@ defmodule Refinex.Macros do
     refinements =
       module
       |> Module.get_attribute(:refinements)
+      |> resolve_refinements!(env)
+      |> Macro.escape()
 
     quote do
       def __type__ do
@@ -65,6 +67,8 @@ defmodule Refinex.Macros do
     refinements =
       module
       |> Module.get_attribute(:refinements)
+      |> resolve_refinements!(env)
+      |> Macro.escape()
 
     quote do
       def __schema__ do
@@ -74,5 +78,49 @@ defmodule Refinex.Macros do
         }
       end
     end
+  end
+
+  # Given a list of refinement atoms and an env, returns the resolved MFAs or
+  # raises if any cannot be resolved.
+  defp resolve_refinements!(refinements, env) do
+    resolved =
+      refinements
+      |> Enum.map(&resolve_refinement(&1, env))
+
+    if Enum.all?(resolved) do
+      resolved
+    else
+      # TODO: add more granular errors here
+      raise ArgumentError,
+            "One or more refinement functions could not be resolved!"
+    end
+  end
+
+  # Given a refinement atom and an env, returns the MFA of the
+  # refinement function if it is defined or imported into the env module.
+  # Otherwise returns `nil`.
+  defp resolve_refinement(refine, env) do
+    env.functions
+    |> Enum.map(fn {module, funs_and_arities} ->
+      cond do
+        # Check if the function is defined in the env module
+        Module.defines?(env.module, {refine, 1}, :def) ->
+          {env.module, refine, 1}
+
+        Module.defines?(env.module, {refine, 2}, :def) ->
+          {env.module, refine, 2}
+
+        # Check if the function is imported into the env module
+        {refine, 1} in funs_and_arities ->
+          {module, refine, 1}
+
+        {refine, 2} in funs_and_arities ->
+          {module, refine, 2}
+
+        true ->
+          nil
+      end
+    end)
+    |> List.first()
   end
 end

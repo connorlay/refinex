@@ -3,7 +3,9 @@ defmodule Refinex.List do
 
   type([:item])
   refine(:is_list)
-  # refine(:refine_items)
+  refine(:refine_items)
 
-  # def refine_items(list, [item])
+  def refine_items(list, [item]) do
+    true
+  end
 end

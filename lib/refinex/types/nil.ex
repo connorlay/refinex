@@ -3,4 +3,8 @@ defmodule Refinex.Nil do
 
   type()
   refine(:is_nil)
+
+  def is_nil(term) do
+    Kernel.is_nil(term)
+  end
 end
