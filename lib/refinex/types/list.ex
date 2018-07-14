@@ -6,6 +6,6 @@ defmodule Refinex.List do
   refine(:refine_items)
 
   def refine_items(list, [item]) do
-    true
+    false
   end
 end

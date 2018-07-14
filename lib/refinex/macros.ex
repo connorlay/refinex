@@ -41,6 +41,10 @@ defmodule Refinex.Macros do
       module
       |> Module.get_attribute(:parameters)
 
+    parameter_vars =
+      parameters
+      |> Enum.map(&Macro.var(&1, nil))
+
     refinements =
       module
       |> Module.get_attribute(:refinements)
@@ -53,6 +57,10 @@ defmodule Refinex.Macros do
           parameters: unquote(parameters),
           refinements: unquote(refinements)
         }
+      end
+
+      def of(unquote_splicing(parameter_vars)) do
+        {__type__(), [unquote_splicing(parameter_vars)]}
       end
     end
   end

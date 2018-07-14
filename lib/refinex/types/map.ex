@@ -5,7 +5,7 @@ defmodule Refinex.Map do
   refine(:is_map)
   refine(:refine_keys_and_values)
 
-  def refine_keys_and_values(map, [key, value]) do
-    true
+  def refine_keys_and_values(list, [key, value]) do
+    false
   end
 end
