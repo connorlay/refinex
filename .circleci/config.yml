@@ -72,7 +72,7 @@ jobs:
 
       - run:
           name: Lint Elixir code with Credo
-          command: mix credo
+          command: mix credo -a
 
   format:
     <<: *elixir

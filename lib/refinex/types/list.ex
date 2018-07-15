@@ -1,4 +1,10 @@
 defmodule Refinex.List do
+  @moduledoc """
+  `List` is the set of all Elixir lists. `List` must be constructed with
+  an `item` type parameter, which corresponds to the type of elements in the
+  list.
+  """
+
   use Refinex
 
   type([:item])
