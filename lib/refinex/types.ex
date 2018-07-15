@@ -1,14 +1,7 @@
 defmodule Refinex.Types do
   @moduledoc false
 
-  defmodule Constructed do
-    @moduledoc false
-    # Represents a type with applied parameters
-    defstruct [
-      :module,
-      :applied_parameters
-    ]
-  end
+  alias Refinex.Type
 
   # Given a type and type parameters modules, applied
   # the parameters if they are valid types or schemas.
@@ -19,13 +12,13 @@ defmodule Refinex.Types do
       |> Enum.map(&resolve_type_parameter/1)
 
     if Enum.all?(resolved) do
-      %Constructed{module: type.module, applied_parameters: resolved}
+      %Type{__module__: type.module, __applied_parameters__: resolved}
     else
       raise ArgumentError, "One or more type parameters could not be resolved!"
     end
   end
 
-  defp resolve_type_parameter(%Constructed{} = type) do
+  defp resolve_type_parameter(%Type{} = type) do
     type
   end
 

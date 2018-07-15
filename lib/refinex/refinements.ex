@@ -1,7 +1,7 @@
 defmodule Refinex.Refinements do
   @moduledoc false
 
-  # TODO: convert all type modules to %Constructed{}
+  # TODO: convert all type modules to %Type{}
 
   def refine(module, term) when is_atom(module) do
     cond do
@@ -24,9 +24,9 @@ defmodule Refinex.Refinements do
   end
 
   def refine(
-        %Refinex.Types.Constructed{
-          module: module,
-          applied_parameters: applied_parameters
+        %Refinex.Type{
+          __module__: module,
+          __applied_parameters__: applied_parameters
         },
         term
       ) do
