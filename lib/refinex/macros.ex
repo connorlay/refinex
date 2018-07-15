@@ -21,7 +21,7 @@ defmodule Refinex.Macros do
   defmacro schema(fields \\ []) do
     quote do
       @before_compile {Refinex.Macros, :compile_schema}
-      @fields unquote(fields)
+      @fields unquote(Macro.escape(fields))
       Module.register_attribute(__MODULE__, :refinements, accumulate: true)
     end
   end
@@ -90,6 +90,12 @@ defmodule Refinex.Macros do
           kind: :schema,
           fields: unquote(fields),
           refinements: unquote(refinements)
+        }
+      end
+
+      def schema() do
+        %Refinex.Schema{
+          __module__: __MODULE__
         }
       end
     end
