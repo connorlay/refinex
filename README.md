@@ -76,6 +76,15 @@ iex> Refinex.is?(%{}, Person)
 false
 ```
 
+If you would like more descriptive errors as to why a term failed refinement:
+```elixir
+iex> Refinex.check("elixir", String)
+{:ok, "elixir"}
+
+iex> Refinex.check(:elixir, String)
+{:error, [%Refinex.Error{message: ":elixir failed refinement for Kernel.is_string/1"}]}
+```
+
 ## Installation
 
 Add the following to your `mix.exs` file:

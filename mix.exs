@@ -7,7 +7,12 @@ defmodule Refinex.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      dialyzer: [
+        plt_core_path: "./_dialyzer",
+        plt_file: {:no_warn, "./_dialyzer/refinex.plt"},
+        plt_add_apps: [:mix]
+      ]
     ]
   end
 

@@ -1,0 +1,163 @@
+elixir: &elixir
+  docker:
+    - image: elixir:1.6.5
+
+version: 2
+jobs:
+  build:
+    <<: *elixir
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v0-build-cache-{{ .Branch }}-{{ .Revision }}
+            - v0-build-cache-{{ .Branch }}-
+            - v0-build-cache-
+
+      - run:
+          name: Setup Hex and Rebar
+          command: mix do local.hex --force, local.rebar --force
+
+      - run:
+          name: Fetch dependencies
+          command: mix deps.get
+
+      - run:
+          name: Compile Elixir for development
+          command: mix compile --warnings-as-errors
+          environment:
+            MIX_ENV: dev
+
+      - run:
+          name: Compile Elixir for test
+          command: mix compile --warnings-as-errors
+          environment:
+            MIX_ENV: test
+
+      - save_cache:
+          key: v0-build-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ~/.mix
+            - _build
+            - deps
+
+  exunit:
+    <<: *elixir
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v0-build-cache-{{ .Branch }}-{{ .Revision }}
+
+      - run:
+          name: Run ExUnit tests
+          command: mix test
+
+      - store_artifacts:
+          path: cover
+
+  credo:
+    <<: *elixir
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v0-build-cache-{{ .Branch }}-{{ .Revision }}
+
+      - run:
+          name: Lint Elixir code with Credo
+          command: mix credo
+
+  format:
+    <<: *elixir
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v0-build-cache-{{ .Branch }}-{{ .Revision }}
+
+      - run:
+          name: Verify Elixir code is formatted
+          command: mix format --check-formatted
+
+  dialyzer:
+    <<: *elixir
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v0-build-cache-{{ .Branch }}-{{ .Revision }}
+
+      - restore_cache:
+          keys:
+            - dialyzer-cache-{{ .Branch }}-{{ .Revision }}
+            - dialyzer-cache-{{ .Branch }}-
+            - dialyzer-cache-
+
+      - run:
+          name: Build PLT
+          command: mkdir -p _dialyzer && mix dialyzer --plt
+
+      - run:
+          name: Run Dialyzer
+          command: mix dialyzer --halt-exit-status
+
+      - save_cache:
+          key: dialyzer-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - _dialyzer
+
+  hex:
+    <<: *elixir
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v0-build-cache-{{ .Branch }}-{{ .Revision }}
+
+      - run:
+          name: Check for retired Hex dependencies
+          command: mix hex.audit
+
+      - run:
+          name: Check for outdated Hex dependencies
+          command: 'mix hex.outdated --all || :'
+
+workflows:
+  version: 2
+
+  build_lint_test:
+    jobs:
+      - build
+
+      - exunit:
+          requires:
+            - build
+
+      - format:
+          requires:
+            - build
+
+      - credo:
+          requires:
+            - build
+
+      - dialyzer:
+          requires:
+            - build
+
+      - hex:
+          requires:
+            - build
