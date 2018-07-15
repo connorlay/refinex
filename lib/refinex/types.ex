@@ -1,6 +1,13 @@
 defmodule Refinex.Types do
   @moduledoc false
 
+  defmodule Constructed do
+    defstruct [
+      :module,
+      :applied_parameters
+    ]
+  end
+
   # Given a type and type parameters modules, applied
   # the parameters if they are valid types or schemas.
   # Raises if the supplied type parameters are invalid.
@@ -10,18 +17,14 @@ defmodule Refinex.Types do
       |> Enum.map(&resolve_type_parameter/1)
 
     if Enum.all?(resolved) do
-      {type, resolved}
+      %Constructed{module: type.module, applied_parameters: resolved}
     else
       raise ArgumentError, "One or more type parameters could not be resolved!"
     end
   end
 
-  defp resolve_type_parameter({%{kind: :type} = type, parameters} = applied) do
+  defp resolve_type_parameter(%Constructed{} = type) do
     type
-  end
-
-  defp resolve_type_parameter(%{kind: :schema} = schema) do
-    schema
   end
 
   defp resolve_type_parameter(module) do
@@ -32,10 +35,10 @@ defmodule Refinex.Types do
 
       # Check if the module is a type or schema
       function_exported?(module, :__type__, 0) ->
-        module.__type__()
+        %Constructed{module: module, applied_parameters: []}
 
       function_exported?(module, :__schema__, 0) ->
-        module.__schema__()
+        module
 
       true ->
         nil

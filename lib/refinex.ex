@@ -10,6 +10,6 @@ defmodule Refinex do
   end
 
   def is?(term, type_or_schema) do
-    raise "Need to implement!"
+    Refinex.Refinements.refine(type_or_schema, term)
   end
 end

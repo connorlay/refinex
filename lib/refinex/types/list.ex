@@ -6,6 +6,8 @@ defmodule Refinex.List do
   refine(:refine_items)
 
   def refine_items(list, [item]) do
-    false
+    list
+    |> Enum.map(&Refinex.is?(&1, item))
+    |> Enum.all?()
   end
 end
