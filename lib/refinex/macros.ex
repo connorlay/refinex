@@ -52,20 +52,22 @@ defmodule Refinex.Macros do
       |> Macro.escape()
 
     quote do
-      def __type__() do
-        %{
-          module: __MODULE__,
-          kind: :type,
-          parameters: unquote(parameters),
-          refinements: unquote(refinements)
-        }
+      def __refinex__() do
+        :type
+      end
+
+      def __refinements__() do
+        unquote(refinements)
+      end
+
+      def __parameters__() do
+        unquote(parameters)
       end
 
       def of(unquote_splicing(parameter_vars)) do
-        Refinex.Types.apply_type_parameters!(
-          __type__(),
-          [unquote_splicing(parameter_vars)]
-        )
+        Refinex.Construction.construct_type!(__MODULE__, [
+          unquote_splicing(parameter_vars)
+        ])
       end
     end
   end
@@ -84,13 +86,16 @@ defmodule Refinex.Macros do
       |> Macro.escape()
 
     quote do
-      def __schema__() do
-        %{
-          module: __MODULE__,
-          kind: :schema,
-          fields: unquote(fields),
-          refinements: unquote(refinements)
-        }
+      def __refinex__() do
+        :schema
+      end
+
+      def __refinements__() do
+        unquote(refinements)
+      end
+
+      def __fields__() do
+        unquote(fields)
       end
 
       def schema() do

@@ -24,3 +24,4 @@ refinex-*.tar
 
 # Ignore dialyzer plt
 /_dialyzer/*.plt
+/_dialyzer/*.hash
