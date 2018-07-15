@@ -4,10 +4,16 @@ defmodule Refinex.MixProject do
   def project do
     [
       app: :refinex,
-      version: "0.1.0",
+      version: "0.1.0-dev",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      name: "Refinex",
+      source_url: "https://github.com/connorlay/refinex",
+      docs: [
+        main: "Refinex",
+        extras: ["README.md"]
+      ],
       dialyzer: [
         plt_core_path: "./_dialyzer",
         plt_file: {:no_warn, "./_dialyzer/refinex.plt"},
@@ -25,7 +31,8 @@ defmodule Refinex.MixProject do
   defp deps do
     [
       {:credo, "~> 0.9.3", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.18.0", only: [:dev], runtime: false}
     ]
   end
 end
