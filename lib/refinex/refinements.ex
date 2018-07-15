@@ -34,34 +34,32 @@ defmodule Refinex.Refinements do
     apply_refinements(term, applied_parameters, refinements)
   end
 
+  # Executes each refinement predicate function on the given term
+  # and its list of resolved type parameters.
+  # Returns a list of errors.
   defp apply_refinements(term, parameters, refinements) do
-    Enum.reduce(refinements, [], fn {module, fun, arity}, errors ->
-      case arity do
-        1 ->
-          # TODO: handle recursive refinement errors
-          if apply(module, fun, [term]) do
-            errors
-          else
-            error = %Refinex.Error{
-              message:
-                "#{inspect(term)} failed refinement for #{module}.#{fun}/1"
-            }
+    Enum.reduce(refinements, [], fn
+      {module, fun, 1}, errors ->
+        if apply(module, fun, [term]) do
+          errors
+        else
+          error = %Refinex.Error{
+            message: "#{inspect(term)} failed refinement for #{module}.#{fun}/1"
+          }
 
-            [error | errors]
-          end
+          [error | errors]
+        end
 
-        2 ->
-          if apply(module, fun, [term, parameters]) do
-            errors
-          else
-            error = %Refinex.Error{
-              message:
-                "#{inspect(term)} failed refinement for #{module}.#{fun}/2"
-            }
+      {module, fun, 2}, errors ->
+        if apply(module, fun, [term, parameters]) do
+          errors
+        else
+          error = %Refinex.Error{
+            message: "#{inspect(term)} failed refinement for #{module}.#{fun}/2"
+          }
 
-            [error | errors]
-          end
-      end
+          [error | errors]
+        end
     end)
   end
 end

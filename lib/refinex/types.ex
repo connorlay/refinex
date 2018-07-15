@@ -2,6 +2,7 @@ defmodule Refinex.Types do
   @moduledoc false
 
   defmodule Constructed do
+    @moduledoc false
     # Represents a type with applied parameters
     defstruct [
       :module,
