@@ -2,6 +2,7 @@ defmodule Refinex.Types do
   @moduledoc false
 
   defmodule Constructed do
+    # Represents a type with applied parameters
     defstruct [
       :module,
       :applied_parameters
@@ -35,9 +36,16 @@ defmodule Refinex.Types do
 
       # Check if the module is a type or schema
       function_exported?(module, :__type__, 0) ->
-        %Constructed{module: module, applied_parameters: []}
+        type = module.__type__()
+
+        if type.parameters == [] do
+          apply_type_parameters!(module.__type__(), [])
+        else
+          nil
+        end
 
       function_exported?(module, :__schema__, 0) ->
+        # TODO: decide how to represent Schemas
         module
 
       true ->
