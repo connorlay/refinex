@@ -1,5 +1,5 @@
 defmodule Refinex.Widget do
   use Refinex
 
-  schema(name: Refinex.String, price: Refinex.Integer)
+  schema(name: Refinex.String, price: Refinex.Integer, related: Refinex.Widget)
 end
