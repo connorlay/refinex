@@ -49,6 +49,7 @@ defmodule Refinex.Macros do
       module
       |> Module.get_attribute(:refinements)
       |> resolve_refinements!(env)
+      |> Enum.reverse()
       |> Macro.escape()
 
     quote do
@@ -83,6 +84,7 @@ defmodule Refinex.Macros do
       module
       |> Module.get_attribute(:refinements)
       |> resolve_refinements!(env)
+      |> Enum.reverse()
       |> Macro.escape()
 
     quote do

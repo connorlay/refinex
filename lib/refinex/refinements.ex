@@ -18,16 +18,17 @@ defmodule Refinex.Refinements do
 
   def refine(%Refinex.Schema{} = schema, term) when is_map(term) do
     fields = schema.__module__.__fields__
+    stringified_map = stringify_keys(term)
 
-    Enum.reduce(fields, [], fn
-      {name, type_or_schema}, errors ->
-        # TODO: accept string and atom inputs
-        term_value = Map.get(term, Atom.to_string(name))
-        refine(type_or_schema, term_value) ++ errors
-    end)
+    errors =
+      Enum.reduce(fields, [], fn
+        {name, type_or_schema}, errors ->
+          stringified_name = Atom.to_string(name)
+          term_value = Map.get(stringified_map, stringified_name)
+          refine(type_or_schema, term_value) ++ errors
+      end)
 
-    # TODO: now that errors are capture, convert to struct
-    # and run refinements. otherwise return errors
+    # TODO: convert stringified map to struct
   end
 
   def refine(%Refinex.Schema{}, term) do
@@ -39,27 +40,43 @@ defmodule Refinex.Refinements do
   # Returns a list of errors.
   defp apply_refinements(term, parameters, refinements) do
     Enum.reduce(refinements, [], fn
-      {module, fun, 1}, errors ->
+      {module, fun, 1}, [] ->
         if apply(module, fun, [term]) do
-          errors
+          []
         else
           error = %Refinex.Error{
             message: "#{inspect(term)} failed refinement for #{module}.#{fun}/1"
           }
 
-          [error | errors]
+          [error]
         end
 
-      {module, fun, 2}, errors ->
+      {module, fun, 2}, [] ->
         if apply(module, fun, [term, parameters]) do
-          errors
+          []
         else
           error = %Refinex.Error{
             message: "#{inspect(term)} failed refinement for #{module}.#{fun}/2"
           }
 
-          [error | errors]
+          [error]
         end
+
+      {_module, _fun, _arity}, errors ->
+        errors
     end)
+  end
+
+  # Given a Map where the keys are atoms, converts them to strings
+  defp stringify_keys(map) do
+    map
+    |> Enum.map(fn
+      {key, value} when is_atom(key) ->
+        {Atom.to_string(key), value}
+
+      {key, value} ->
+        {key, value}
+    end)
+    |> Enum.into(%{})
   end
 end

@@ -25,5 +25,30 @@ defmodule RefinexTest do
                Refinex.List.of(Refinex.Any)
              )
     end
+
+    defmodule Widget do
+      use Refinex
+
+      schema(
+        a: Refinex.String,
+        b: Refinex.List.of(Refinex.String),
+        c: Refinex.Union.of(__MODULE__, Refinex.Nil)
+      )
+    end
+
+    test "Widget" do
+      assert Refinex.is?(
+               %{
+                 a: "widget",
+                 b: ["red", "green", "blue"],
+                 c: %{
+                   a: "widget",
+                   b: [],
+                   c: nil
+                 }
+               },
+               Widget
+             )
+    end
   end
 end
