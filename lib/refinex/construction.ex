@@ -9,7 +9,7 @@ defmodule Refinex.Construction do
         build_type!(module)
 
       :schema ->
-        module
+        build_schema!(module)
     end
   end
 
@@ -22,6 +22,12 @@ defmodule Refinex.Construction do
     %Refinex.Type{
       __module__: module,
       __applied_parameters__: parameters_to_apply
+    }
+  end
+
+  def build_schema!(module) do
+    %Refinex.Schema{
+      __module__: module
     }
   end
 
