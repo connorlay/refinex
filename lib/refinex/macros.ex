@@ -65,7 +65,7 @@ defmodule Refinex.Macros do
       end
 
       def of(unquote_splicing(parameter_vars)) do
-        Refinex.Construction.construct_type!(__MODULE__, [
+        Refinex.Construction.build_type!(__MODULE__, [
           unquote_splicing(parameter_vars)
         ])
       end

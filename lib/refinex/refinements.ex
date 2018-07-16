@@ -6,7 +6,7 @@ defmodule Refinex.Refinements do
   # Raises if the module is not a valid Refinex type or schema.
   def refine(module, term) when is_atom(module) do
     module
-    |> Refinex.Construction.construct_type!([])
+    |> Refinex.Construction.build!()
     |> refine(term)
   end
 

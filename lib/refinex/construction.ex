@@ -1,59 +1,52 @@
 defmodule Refinex.Construction do
   @moduledoc false
 
-  # Given a type and type parameters modules, applied
-  # the parameters if they are valid types or schemas.
-  # Raises if the supplied type parameters are invalid.
-  def construct_type!(module, type_parameters) when is_atom(module) do
-    validated_module = validate_module(module)
+  def build!(module) do
+    validate_refinex!(module)
 
-    unless validated_module do
-      raise ArgumentError, "#{module} is not a Type or Schema!"
-    end
-
-    validated =
-      type_parameters
-      |> Enum.map(&validate_module/1)
-      |> Enum.map(&validate_type_parameter/1)
-
-    if Enum.all?(validated) do
-      %Refinex.Type{__module__: module, __applied_parameters__: validated}
-    else
-      raise ArgumentError, "One or more type parameters could not be validated!"
-    end
-  end
-
-  defp validate_module(%Refinex.Type{} = type) do
-    type
-  end
-
-  defp validate_module(module) when is_atom(module) do
-    # Load the module into memory first, then check if it is a refinex module
-    if Code.ensure_loaded?(module) &&
-         function_exported?(module, :__refinex__, 0) do
-      module
-    else
-      nil
-    end
-  end
-
-  defp validate_type_parameter(nil), do: nil
-
-  defp validate_type_parameter(%Refinex.Type{} = type) do
-    type
-  end
-
-  defp validate_type_parameter(module) when is_atom(module) do
-    case module.__refinex__ do
+    case module.__refinex__() do
       :type ->
-        if Enum.empty?(module.__parameters__) do
-          module
-        else
-          nil
-        end
+        build_type!(module)
 
       :schema ->
         module
     end
+  end
+
+  def build_type!(module, parameters_to_apply \\ []) do
+    validate_refinex!(module)
+    validate_enough_parameters!(module, parameters_to_apply)
+
+    Enum.each(parameters_to_apply, &validate_refinex!/1)
+
+    %Refinex.Type{
+      __module__: module,
+      __applied_parameters__: parameters_to_apply
+    }
+  end
+
+  defp validate_refinex!(%Refinex.Type{} = type), do: type
+
+  defp validate_refinex!(module) when is_atom(module) do
+    unless refinex_module?(module) do
+      raise ArgumentError, "#{module} is not a type or schema!"
+    end
+
+    module
+  end
+
+  defp refinex_module?(module) do
+    Code.ensure_loaded?(module) && function_exported?(module, :__refinex__, 0)
+  end
+
+  defp validate_enough_parameters!(module, parameters_to_apply) do
+    unless enough_parameters?(module, parameters_to_apply) do
+      raise ArgumentError,
+            "#{module} requires #{parameters_to_apply} parameters!"
+    end
+  end
+
+  defp enough_parameters?(module, parameters_to_apply) do
+    length(module.__parameters__()) == length(parameters_to_apply)
   end
 end
