@@ -20,13 +20,12 @@ defmodule Refinex.Refinements do
     fields = schema.__module__.__fields__
     stringified_map = stringify_keys(term)
 
-    errors =
-      Enum.reduce(fields, [], fn
-        {name, type_or_schema}, errors ->
-          stringified_name = Atom.to_string(name)
-          term_value = Map.get(stringified_map, stringified_name)
-          refine(type_or_schema, term_value) ++ errors
-      end)
+    Enum.reduce(fields, [], fn
+      {name, type_or_schema}, errors ->
+        stringified_name = Atom.to_string(name)
+        term_value = Map.get(stringified_map, stringified_name)
+        refine(type_or_schema, term_value) ++ errors
+    end)
 
     # TODO: convert stringified map to struct
   end
