@@ -73,6 +73,5 @@ defmodule Refinex.Refinements do
   end
 
   defp refine_schema(_schema, _term) do
-    nil
   end
 end

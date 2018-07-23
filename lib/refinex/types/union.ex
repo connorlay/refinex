@@ -10,6 +10,18 @@ defmodule Refinex.Union do
   refine(:is_left_or_right)
 
   def is_left_or_right(union, [left, right]) do
-    Refinex.is?(union, left) || Refinex.is?(union, right)
+    left_result = Refinex.check(union, left)
+    right_result = Refinex.check(union, right)
+
+    cond do
+      left_result.valid? ->
+        left_result
+
+      right_result.valid? ->
+        right_result
+
+      true ->
+        Refinex.Result.cast_error(__MODULE__, union, [left_result, right_result])
+    end
   end
 end
