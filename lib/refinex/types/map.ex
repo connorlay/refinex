@@ -11,11 +11,12 @@ defmodule Refinex.Map do
   refine(:is_map)
   refine(:refine_keys_and_values)
 
-  def refine_keys_and_values(list, [key, value]) do
-    list
-    |> Enum.map(fn {term_key, term_value} ->
-      Refinex.is?(term_key, key) && Refinex.is?(term_value, value)
-    end)
-    |> Enum.all?()
+  def refine_keys_and_values(map, [key, value]) do
+    results =
+      Enum.flat_map(map, fn {term_key, term_value} ->
+        [Refinex.check(term_key, key), Refinex.check(term_value, value)]
+      end)
+
+    Refinex.Result.flatten(__MODULE__, map, results)
   end
 end

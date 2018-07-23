@@ -16,6 +16,21 @@ defmodule Refinex.Result do
     defexception [:message]
   end
 
+  def flatten(kind, term, results) do
+    if Enum.all?(results, & &1.valid?) do
+      Refinex.Result.success(kind, term)
+    else
+      flattened_errors =
+        results
+        |> Enum.map(& &1.errors)
+        |> Enum.reduce([], fn errors, all_errors ->
+          all_errors ++ errors
+        end)
+
+      Refinex.Result.cast_error(kind, term, flattened_errors)
+    end
+  end
+
   def success(kind, original_term, cast_term \\ nil) do
     %__MODULE__{
       kind: kind,

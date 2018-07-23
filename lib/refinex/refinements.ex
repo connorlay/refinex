@@ -69,22 +69,7 @@ defmodule Refinex.Refinements do
           {:error, results}
       end)
 
-    # Given a list of Results, extract the errors and flatten them into
-    # one Result
-    flattened_errors =
-      Enum.reduce(results, [], fn result, errors ->
-        if result.valid? do
-          errors
-        else
-          errors ++ result.errors
-        end
-      end)
-
-    if Enum.empty?(flattened_errors) do
-      Result.success(type, term)
-    else
-      Result.cast_error(type, term, flattened_errors)
-    end
+    Refinex.Result.flatten(type, term, results)
   end
 
   defp refine_schema(_schema, _term) do
