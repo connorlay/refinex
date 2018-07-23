@@ -24,30 +24,10 @@ defmodule RefinexTest do
                ["elixir", :erlang, [1, 2, 3]],
                Refinex.List.of(Refinex.Any)
              )
-    end
 
-    defmodule Widget do
-      use Refinex
-
-      schema(
-        a: Refinex.String,
-        b: Refinex.List.of(Refinex.String),
-        c: Refinex.Union.of(__MODULE__, Refinex.Nil)
-      )
-    end
-
-    test "Widget" do
-      assert Refinex.is?(
-               %{
-                 a: "widget",
-                 b: ["red", "green", "blue"],
-                 c: %{
-                   a: "widget",
-                   b: [],
-                   c: nil
-                 }
-               },
-               Widget
+      refute Refinex.is?(
+               [["elixir"], [:erlang], [124], "apple"],
+               Refinex.List.of(Refinex.List.of(Refinex.String))
              )
     end
   end

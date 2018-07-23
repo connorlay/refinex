@@ -10,25 +10,11 @@ defmodule Refinex do
   end
 
   def is?(term, type_or_schema) do
-    errors = Refinex.Refinements.refine(type_or_schema, term)
-    Enum.empty?(errors)
+    result = Refinex.Refinements.refine(type_or_schema, term)
+    result.valid?
   end
 
   def check(term, type_or_schema) do
-    errors = Refinex.Refinements.refine(type_or_schema, term)
-
-    if Enum.empty?(errors) do
-      {:ok, term}
-    else
-      {:error, errors}
-    end
-  end
-
-  defmodule Error do
-    @moduledoc """
-    Returned (or raised) if a term fails refinement against a given type or schema.
-    """
-
-    defstruct [:message]
+    Refinex.Refinements.refine(type_or_schema, term)
   end
 end

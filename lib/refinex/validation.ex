@@ -1,27 +1,27 @@
-defmodule Refinex.Construction do
+defmodule Refinex.Validation do
   @moduledoc false
 
-  def build!(module) do
+  def build!(module, parameters \\ []) do
     validate_refinex!(module)
 
     case module.__refinex__() do
       :type ->
-        build_type!(module)
+        build_type!(module, parameters)
 
       :schema ->
         build_schema!(module)
     end
   end
 
-  def build_type!(module, parameters_to_apply \\ []) do
+  defp build_type!(module, parameters) do
     validate_refinex!(module)
-    validate_enough_parameters!(module, parameters_to_apply)
+    validate_enough_parameters!(module, parameters)
 
-    Enum.each(parameters_to_apply, &validate_refinex!/1)
+    Enum.each(parameters, &validate_refinex!/1)
 
     %Refinex.Type{
       __module__: module,
-      __applied_parameters__: parameters_to_apply
+      __applied_parameters__: parameters
     }
   end
 
@@ -45,14 +45,14 @@ defmodule Refinex.Construction do
     Code.ensure_loaded?(module) && function_exported?(module, :__refinex__, 0)
   end
 
-  defp validate_enough_parameters!(module, parameters_to_apply) do
-    unless enough_parameters?(module, parameters_to_apply) do
+  defp validate_enough_parameters!(module, parameters) do
+    unless enough_parameters?(module, parameters) do
       raise ArgumentError,
-            "#{module} requires #{parameters_to_apply} parameters!"
+            "#{module} requires #{parameters} parameters!"
     end
   end
 
-  defp enough_parameters?(module, parameters_to_apply) do
-    length(module.__parameters__()) == length(parameters_to_apply)
+  defp enough_parameters?(module, parameters) do
+    length(module.__parameters__()) == length(parameters)
   end
 end

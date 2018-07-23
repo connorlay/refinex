@@ -66,7 +66,7 @@ defmodule Refinex.Macros do
       end
 
       def of(unquote_splicing(parameter_vars)) do
-        Refinex.Construction.build_type!(__MODULE__, [
+        Refinex.Validation.build!(__MODULE__, [
           unquote_splicing(parameter_vars)
         ])
       end
@@ -118,7 +118,6 @@ defmodule Refinex.Macros do
     if Enum.all?(resolved) do
       resolved
     else
-      # TODO: add more granular errors here
       raise ArgumentError,
             "One or more refinement functions could not be resolved!"
     end
@@ -149,6 +148,7 @@ defmodule Refinex.Macros do
           nil
       end
     end)
+    # Return the first match if there are conflicts
     |> List.first()
   end
 end

@@ -1,81 +1,93 @@
 defmodule Refinex.Refinements do
   @moduledoc false
 
-  # Given a module or an already constructed type, applies all
-  # refinement functions onto the term.
-  # Raises if the module is not a valid Refinex type or schema.
+  alias Refinex.{
+    Type,
+    Schema,
+    Result
+  }
+
+  ##############
+  # Public API #
+  ##############
+
+  def refine(%Schema{} = schema, term) do
+    refine_schema(schema, term)
+  end
+
+  def refine(%Type{} = type, term) do
+    refine_type(type, term)
+  end
+
   def refine(module, term) when is_atom(module) do
     module
-    |> Refinex.Construction.build!()
+    |> Refinex.Validation.build!()
     |> refine(term)
   end
 
-  def refine(%Refinex.Type{} = type, term) do
-    refinements = type.__module__.__refinements__
-    parameters = type.__applied_parameters__
-    apply_refinements(term, parameters, refinements)
+  def refine(kind, term) do
+    Result.invalid_kind_error(kind, term)
   end
 
-  def refine(%Refinex.Schema{} = schema, term) when is_map(term) do
-    fields = schema.__module__.__fields__
-    stringified_map = stringify_keys(term)
+  ##################
+  # Implementation #
+  ##################
 
-    Enum.reduce(fields, [], fn
-      {name, type_or_schema}, errors ->
-        stringified_name = Atom.to_string(name)
-        term_value = Map.get(stringified_map, stringified_name)
-        refine(type_or_schema, term_value) ++ errors
-    end)
+  defp refine_type(type, term) do
+    module = type.__module__
+    applied_parameters = type.__applied_parameters__
+    refinements = module.__refinements__
 
-    # TODO: convert stringified map to struct
-  end
+    {_status, results} =
+      Enum.reduce(refinements, {:ok, []}, fn
+        # Concrete refinement functions need to return
+        # a boolean
+        {mod, fun, 1}, {:ok, results} ->
+          if apply(mod, fun, [term]) do
+            {:ok, [Result.success(type, term) | results]}
+          else
+            {:error,
+             [
+               Result.failed_refinement_error(module, term, {mod, fun, 1})
+               | results
+             ]}
+          end
 
-  def refine(%Refinex.Schema{}, term) do
-    [%Refinex.Error{message: "#{inspect(term)} is not a map!"}]
-  end
+        {mod, fun, 2}, {:ok, results} ->
+          # Parameterized refinement functions need to return
+          # a Refinex.Result
+          result = apply(mod, fun, [term, applied_parameters])
 
-  # Executes each refinement predicate function on the given term
-  # and its list of resolved type parameters.
-  # Returns a list of errors.
-  defp apply_refinements(term, parameters, refinements) do
-    Enum.reduce(refinements, [], fn
-      {module, fun, 1}, [] ->
-        if apply(module, fun, [term]) do
-          []
+          if result.valid? do
+            {:ok, [result | results]}
+          else
+            {:error, [result | results]}
+          end
+
+        _refinement, {:error, results} ->
+          # Short-circuit refinements
+          {:error, results}
+      end)
+
+    # Given a list of Results, extract the errors and flatten them into
+    # one Result
+    flattened_errors =
+      Enum.reduce(results, [], fn result, errors ->
+        if result.valid? do
+          errors
         else
-          error = %Refinex.Error{
-            message: "#{inspect(term)} failed refinement for #{module}.#{fun}/1"
-          }
-
-          [error]
+          errors ++ result.errors
         end
+      end)
 
-      {module, fun, 2}, [] ->
-        if apply(module, fun, [term, parameters]) do
-          []
-        else
-          error = %Refinex.Error{
-            message: "#{inspect(term)} failed refinement for #{module}.#{fun}/2"
-          }
-
-          [error]
-        end
-
-      {_module, _fun, _arity}, errors ->
-        errors
-    end)
+    if Enum.empty?(flattened_errors) do
+      Result.success(type, term)
+    else
+      Result.cast_error(type, term, flattened_errors)
+    end
   end
 
-  # Given a Map where the keys are atoms, converts them to strings
-  defp stringify_keys(map) do
-    map
-    |> Enum.map(fn
-      {key, value} when is_atom(key) ->
-        {Atom.to_string(key), value}
-
-      {key, value} ->
-        {key, value}
-    end)
-    |> Enum.into(%{})
+  defp refine_schema(_schema, _term) do
+    nil
   end
 end
