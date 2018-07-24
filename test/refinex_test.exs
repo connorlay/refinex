@@ -154,6 +154,16 @@ defmodule RefinexTest do
 
     assert Refinex.is?(
              %{
+               "a" => :atom,
+               "b" => "string",
+               "c" => [1, 2, 3],
+               "d" => nil
+             },
+             RefinexTest.Widget
+           )
+
+    assert Refinex.is?(
+             %{
                a: :atom,
                b: "string",
                c: [1, 2, 3],

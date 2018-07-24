@@ -79,10 +79,11 @@ defmodule Refinex.Refinements do
     fields = module.__fields__
     refinements = module.__refinements__
 
+    stringified_map = stringify_keys(term)
+
     results =
       Enum.map(fields, fn {name, kind} ->
-        # TODO: stringify keys
-        term_value = term[name]
+        term_value = Map.get(stringified_map, Atom.to_string(name))
         refine(kind, term_value)
       end)
 
@@ -93,5 +94,17 @@ defmodule Refinex.Refinements do
     Result.cast_error(schema, term, [
       %Result.Error{message: "#{term} is not a map"}
     ])
+  end
+
+  defp stringify_keys(map) do
+    map
+    |> Enum.map(fn
+      {key, value} when is_atom(key) ->
+        {Atom.to_string(key), value}
+
+      tuple ->
+        tuple
+    end)
+    |> Enum.into(%{})
   end
 end

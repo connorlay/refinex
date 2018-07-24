@@ -8,7 +8,9 @@ defmodule Refinex.Macros do
     end
   end
 
-  # Refinex DSL
+  ###############
+  # Refinex DSL #
+  ###############
 
   defmacro type(parameters \\ []) do
     quote do
@@ -32,7 +34,9 @@ defmodule Refinex.Macros do
     end
   end
 
-  # Compile hooks
+  #################
+  # Compile hooks #
+  #################
 
   defmacro compile_type(env) do
     module = env.module
