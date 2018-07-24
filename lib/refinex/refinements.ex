@@ -29,9 +29,9 @@ defmodule Refinex.Refinements do
     Result.invalid_kind_error(kind, term)
   end
 
-  ##################
-  # Implementation #
-  ##################
+  #######################
+  # Type Implementation #
+  #######################
 
   defp refine_type(type, term) do
     module = type.__module__
@@ -44,13 +44,11 @@ defmodule Refinex.Refinements do
         # a boolean
         {mod, fun, 1}, {:ok, results} ->
           if apply(mod, fun, [term]) do
-            {:ok, [Result.success(type, term) | results]}
+            result = Result.success(type, term)
+            {:ok, [result | results]}
           else
-            {:error,
-             [
-               Result.failed_refinement_error(module, term, {mod, fun, 1})
-               | results
-             ]}
+            result = Result.failed_refinement_error(module, term, {mod, fun, 1})
+            {:error, [result | results]}
           end
 
         {mod, fun, 2}, {:ok, results} ->
@@ -69,9 +67,31 @@ defmodule Refinex.Refinements do
           {:error, results}
       end)
 
-    Refinex.Result.flatten(type, term, results)
+    Result.flatten(type, term, results)
   end
 
-  defp refine_schema(_schema, _term) do
+  #########################
+  # Schema Implementation #
+  #########################
+
+  defp refine_schema(schema, term) when is_map(term) do
+    module = schema.__module__
+    fields = module.__fields__
+    refinements = module.__refinements__
+
+    results =
+      Enum.map(fields, fn {name, kind} ->
+        # TODO: stringify keys
+        term_value = term[name]
+        refine(kind, term_value)
+      end)
+
+    Result.flatten(schema, term, results)
+  end
+
+  defp refine_schema(schema, term) do
+    Result.cast_error(schema, term, [
+      %Result.Error{message: "#{term} is not a map"}
+    ])
   end
 end

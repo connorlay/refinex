@@ -125,4 +125,46 @@ defmodule RefinexTest do
       assert Refinex.is?(nil, Union.of(String, Nil))
     end
   end
+
+  describe "Schema" do
+    defmodule Widget do
+      use Refinex
+
+      schema(
+        a: Atom,
+        b: String,
+        c: List.of(Integer),
+        d: Union.of(__MODULE__, Nil)
+      )
+    end
+  end
+
+  test "Widget" do
+    refute Refinex.is?(%{}, RefinexTest.Widget)
+
+    assert Refinex.is?(
+             %{
+               a: :atom,
+               b: "string",
+               c: [1, 2, 3],
+               d: nil
+             },
+             RefinexTest.Widget
+           )
+
+    assert Refinex.is?(
+             %{
+               a: :atom,
+               b: "string",
+               c: [1, 2, 3],
+               d: %{
+                 a: :atom,
+                 b: "string",
+                 c: [1, 2, 3],
+                 d: nil
+               }
+             },
+             RefinexTest.Widget
+           )
+  end
 end
